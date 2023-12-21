@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ProductController; // Add this line to use ProductController
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CartController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +34,29 @@ Route::middleware('auth')->group(function () {
     
     // Product routes using resource controller
     Route::resource('products', ProductController::class);
+
+    // Cart routes
+    Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
+    Route::get('/cart', [CartController::class, 'viewCart'])->name('cart.view');
+    Route::delete('/cart/remove/{product}', [CartController::class, 'removeFromCart'])->name('cart.remove');
+
+    // Admin routes
+    Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
+        // List users (Admin Dashboard)
+        Route::get('/users', [AdminController::class, 'index'])->name('admin.users.index');
+        
+        // Edit user information
+        Route::get('/users/{user}/edit', [AdminController::class, 'edit'])->name('admin.users.edit');
+        Route::put('/users/{user}', [AdminController::class, 'update'])->name('admin.users.update');
+        
+        // Promote user as admin
+        Route::get('/users/{user}/promote', [AdminController::class, 'promote'])->name('admin.users.promote');
+        Route::post('/users/{user}/promote', [AdminController::class, 'promoteUser'])->name('admin.users.promoteUser');
+    });
+
+    // Admin dashboard route
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
 });
 
 require __DIR__.'/auth.php';
